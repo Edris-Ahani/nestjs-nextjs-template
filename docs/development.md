@@ -2,6 +2,8 @@
 
 Read [installation](getting-started.md) and [architecture](architecture.md) first. Commands use Windows cmd /c syntax; omit that prefix on Linux/macOS.
 
+To create an independent sibling, follow [creating a project](creating-a-project.md). After adding or removing maintained files, review them and run `npm run template:sync` and `npm run template:check`.
+
 ## Host reload
 
     cmd /c npm run infra:up
@@ -14,6 +16,8 @@ In another user terminal, run cmd /c npm run dev:frontend -- --port 3001. Backen
 
 | Command | Purpose |
 | --- | --- |
+| npm run template:test | Dependency-free generator behavior and copy protection tests |
+| npm run template:check | Verify the reviewed inventory in a Git checkout |
 | npm run setup | Preserve or generate private development configuration |
 | npm run doctor | Check Node, selected container client/server, Compose provider, and local environment presence |
 | npm run infra:up | Start only the selected database and local identity services |

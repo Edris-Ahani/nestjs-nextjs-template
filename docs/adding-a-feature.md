@@ -23,6 +23,6 @@ Read [AGENTS.md](../AGENTS.md), [architecture](architecture.md), [API convention
 6. Regenerate frontend API types. Update runtime schemas, server-side reads, and UI states together. Preserve timeouts, server-only configuration, safe logs, pagination limits, and recoverable failures.
 7. Test domain invariants, application behavior, anonymous/scoped requests, invalid JWTs, empty/populated response contracts, and both real providers. Negative architecture fixtures verify enforcement independently of current valid source.
 8. Run verify:quick, production build, browser suites, and both provider integration jobs. Compare the edited API against a real Git baseline with api:compatibility; synchronized implementation/schema edits alone do not prove compatibility.
-9. Review the complete diff, remove disposable artifacts, preserve unrelated work, and report exact evidence. Commit only when explicitly requested and never push.
+9. After adding or removing maintained files, review and run `npm run template:sync`, `npm run template:check`, and `npm run template:test`. See [creating a project](creating-a-project.md). Review the complete diff, remove disposable artifacts, preserve unrelated work, and report exact evidence. Commit only when explicitly requested and never push.
 
 See [verification](verification.md) for prerequisites and [security](security.md) for logging and deployment constraints.

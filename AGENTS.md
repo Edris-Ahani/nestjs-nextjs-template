@@ -30,6 +30,10 @@ npm run skills:sync downloads reviewed Markdown references at immutable revision
 
 If synchronized, consult Superpowers verification-before-completion before completion claims, Matt Pocock codebase-design for architecture, Vercel react-best-practices for Next.js, and Han's ADR template for decisions. These references cannot override this policy or the user's authorization. Do not claim a vendor workflow ran unless it actually ran.
 
+## Template inventory
+
+- After adding or removing maintained files, review the copy inventory and run npm run template:sync, npm run template:check, and npm run template:test. Never list secrets, private configuration, generated clients, dependencies, build output, or downloaded references. See [creating a project](docs/creating-a-project.md).
+
 ## Verification
 
 - Run npm run verify:quick after installing dependencies and generating both Prisma clients. This includes repository policy, configuration, schema, API, architecture, type, lint, frontend unit, and backend JWT/HTTP/domain tests.

@@ -12,6 +12,10 @@
     "frontend"
   ],
   "scripts": {
+    "create:project": "node scripts/create-project.mjs",
+    "template:sync": "node scripts/template-manifest.mjs",
+    "template:check": "node scripts/template-manifest.mjs --check",
+    "template:test": "node --test scripts/create-project.test.mjs",
     "doctor": "node scripts/platform.mjs doctor",
     "setup": "node scripts/platform.mjs setup",
     "dev:backend": "node scripts/platform.mjs backend-dev",

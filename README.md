@@ -4,6 +4,10 @@ A feature-organized TypeScript application with NestJS, Next.js App Router, Pris
 
 This is the sibling of the Spring Boot template: it retains the Foundry interface, reference catalog, server-side reads, runtime Zod validation, contract-first OpenAPI, local Scalar documentation, Keycloak OIDC, request correlation, safe problem responses, independent health probes, internal Prometheus metrics, Podman/Docker infrastructure, production Compose/Caddy examples, dependency/security workflows, browser tests, and shared coding-agent references. It replaces Java/Maven/JPA/Flyway with NestJS/TypeScript/Prisma equivalents.
 
+## Create your own project
+
+Run `node scripts/create-project.mjs` and enter a name such as `blue-shop` to create an independent sibling with matching package, database, and image names and fresh local credentials. PostgreSQL is the default; add `--database mysql` to select MySQL. See [creating a project](docs/creating-a-project.md) for commands, safety boundaries, naming, and startup.
+
 ## Start here
 
 Use Node.js 24 and npm 11.13 or newer within major 11. CI and images pin npm 11.21.2. Install Podman with a Compose provider or Docker Compose for real databases and the complete stack. No Java, Maven, global Nest CLI, or globally installed Prisma is required.
