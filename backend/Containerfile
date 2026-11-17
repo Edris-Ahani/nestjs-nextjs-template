@@ -1,4 +1,4 @@
-FROM docker.io/library/node:24.16.0-alpine AS dependencies
+FROM docker.io/library/node:26.13.1-alpine AS dependencies
 RUN apk add --no-cache openssl
 RUN npm install --global npm@11.21.2 --no-fund --no-audit
 WORKDIR /workspace
@@ -23,7 +23,7 @@ COPY scripts ./scripts
 RUN npm run db:generate && npm run build --workspace backend
 RUN npm prune --workspace backend --include-workspace-root --omit=dev --ignore-scripts --no-fund --no-audit && mkdir -p backend/node_modules
 
-FROM docker.io/library/node:24.16.0-alpine AS runtime
+FROM docker.io/library/node:26.13.1-alpine AS runtime
 ENV NODE_ENV=production PORT=8080 MANAGEMENT_PORT=9090 API_HOST=0.0.0.0 MANAGEMENT_HOST=0.0.0.0
 RUN addgroup -S -g 10001 platform && adduser -S -u 10001 -G platform platform
 WORKDIR /app
