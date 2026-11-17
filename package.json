@@ -1,0 +1,57 @@
+{
+  "name": "nestjs-nextjs-platform",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11.13 <12"
+  },
+  "packageManager": "npm@11.21.2",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "doctor": "node scripts/platform.mjs doctor",
+    "setup": "node scripts/platform.mjs setup",
+    "dev:backend": "node scripts/platform.mjs backend-dev",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "infra:up": "node scripts/platform.mjs infra-up",
+    "stack:up": "node scripts/platform.mjs stack-up",
+    "stack:build": "node scripts/platform.mjs stack-build",
+    "stack:start": "node scripts/platform.mjs stack-start",
+    "stack:down": "node scripts/platform.mjs stack-down",
+    "skills:sync": "node scripts/sync-agent-references.mjs",
+    "db:generate": "node scripts/database.mjs generate",
+    "db:check": "node scripts/database.mjs check",
+    "db:migrate": "node scripts/database.mjs deploy",
+    "db:dev": "node scripts/database.mjs dev",
+    "db:status": "node scripts/database.mjs status",
+    "api:lint": "redocly lint contracts/openapi.yaml",
+    "api:generate": "npm run api:generate --workspace frontend && node scripts/contract-assets.mjs sync",
+    "api:check": "npm run api:lint && npm run api:check --workspace frontend && node scripts/contract-assets.mjs check",
+    "api:compatibility": "node scripts/api-compatibility.mjs",
+    "api:compatibility:test": "node --test scripts/api-compatibility.test.mjs",
+    "verify:quick": "node scripts/verify.mjs quick",
+    "verify:full": "node scripts/verify.mjs full",
+    "repository:check": "node scripts/verify-repository.mjs",
+    "repository:test": "node --test scripts/verify-repository.test.mjs",
+    "security:npm": "npm audit --package-lock-only --ignore-scripts --include=dev --include=optional --audit-level=moderate",
+    "security:test": "node --test scripts/configuration.test.mjs",
+    "architecture:check": "npm run architecture:check --workspace backend",
+    "check": "npm run check --workspace backend && npm run check --workspace frontend",
+    "build": "npm run build --workspace backend && npm run build --workspace frontend",
+    "test": "npm run test --workspace frontend",
+    "test:e2e": "npm run test:e2e --workspace frontend",
+    "test:api-reference": "npm run test:api-reference --workspace frontend",
+    "test:smoke": "node scripts/smoke-test.mjs",
+    "backend:unit": "npm run test --workspace backend",
+    "backend:verify": "npm run test --workspace backend && npm run test:integration --workspace backend"
+  },
+  "overrides": {
+    "minimatch@>=7 <11.0.1": "11.0.1"
+  },
+  "devDependencies": {
+    "@redocly/cli": "2.77.0"
+  }
+}

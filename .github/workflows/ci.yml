@@ -1,0 +1,124 @@
+name: Verify template
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  host:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, shell: bash }
+          - { os: windows-latest, shell: cmd }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with: { node-version: '24', cache: npm }
+      - run: npm install --global npm@11.21.2 --no-fund --no-audit
+      - run: npm ci --ignore-scripts --no-fund
+      - run: npm run db:generate
+      - run: npm run verify:quick
+      - run: npm run build
+      - run: npm exec --workspace frontend -- playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: browser-${{ matrix.os }}
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 7
+  databases:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - provider: postgresql
+            image: postgres:18.6-alpine
+            url: postgresql://platform:ci-only-password@localhost:5432/platform
+            health: pg_isready -U platform -d platform
+          - provider: mysql
+            image: mysql:8.4.8
+            url: mysql://platform:ci-only-password@localhost:3306/platform
+            health: mysqladmin ping -h 127.0.0.1 --silent
+    services:
+      database:
+        image: ${{ matrix.image }}
+        env:
+          POSTGRES_DB: platform
+          POSTGRES_USER: platform
+          POSTGRES_PASSWORD: ci-only-password
+          MYSQL_DATABASE: platform
+          MYSQL_USER: platform
+          MYSQL_PASSWORD: ci-only-password
+          MYSQL_ROOT_PASSWORD: ci-only-root-password
+          TZ: UTC
+        ports: ['5432:5432', '3306:3306']
+        options: >-
+          --health-cmd="${{ matrix.health }}"
+          --health-interval=5s --health-timeout=3s --health-retries=30
+    env:
+      DATABASE_PROVIDER: ${{ matrix.provider }}
+      DATABASE_URL: ${{ matrix.url }}
+      TEST_DATABASE_URL: ${{ matrix.url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with: { node-version: '24', cache: npm }
+      - run: npm install --global npm@11.21.2 --no-fund --no-audit
+      - run: npm ci --ignore-scripts --no-fund
+      - run: npm run db:generate
+      - run: npm run db:migrate
+      - run: npm run backend:verify
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      API_BASE_REF: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { fetch-depth: 0, persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with: { node-version: '24' }
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with: { go-version: '1.27.1' }
+      - run: npm run api:compatibility:test
+      - run: npm run api:compatibility
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CONTAINER_ENGINE: docker
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with: { node-version: '24', cache: npm }
+      - run: npm install --global npm@11.21.2 --no-fund --no-audit
+      - run: npm ci --ignore-scripts --no-fund
+      - run: npm run db:generate
+      - run: npm exec --workspace frontend -- playwright install --with-deps chromium
+      - name: Verify real identity, persistence, API, Scalar, and web containers
+        run: |
+          npm run setup
+          trap 'npm run stack:down' EXIT
+          npm run stack:up
+          npm run test:smoke
+          npm run test:api-reference

@@ -1,0 +1,11 @@
+// Shared portable model. Provider-specific schema files are assembled by scripts/database.mjs.
+model CatalogItem {
+  id          String   @id @db.VarChar(36)
+  slug        String   @unique @db.VarChar(80)
+  name        String   @db.VarChar(120)
+  description String   @db.VarChar(1000)
+  createdAt   DateTime @map("created_at") @db.Timestamp(3)
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)], map: "catalog_items_created_at_id_idx")
+  @@map("catalog_items")
+}

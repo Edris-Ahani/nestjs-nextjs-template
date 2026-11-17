@@ -1,0 +1,25 @@
+services:
+  database:
+    image: docker.io/library/mysql:8.4.8
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_bin", "--default-time-zone=+00:00"]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]
+    environment:
+      MYSQL_DATABASE: platform
+      MYSQL_USER: ${DATABASE_USERNAME:-platform}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:?Run npm run setup}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Run npm run setup}
+      TZ: UTC
+    ports: ["127.0.0.1:${MYSQL_PORT:-13307}:3306"]
+    volumes: ["mysql-data:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql --protocol=TCP -h 127.0.0.1 -u \"$$MYSQL_USER\" -D \"$$MYSQL_DATABASE\" -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: 768m
+    networks: [data]
+volumes:
+  mysql-data:

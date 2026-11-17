@@ -1,0 +1,36 @@
+FROM docker.io/library/node:24.16.0-alpine AS dependencies
+RUN apk add --no-cache openssl
+RUN npm install --global npm@11.21.2 --no-fund --no-audit
+WORKDIR /workspace
+COPY package.json package-lock.json .npmrc ./
+COPY backend/package.json ./backend/package.json
+COPY frontend/package.json ./frontend/package.json
+RUN npm ci --workspace backend --include-workspace-root --ignore-scripts --no-fund --no-audit
+
+
+FROM dependencies AS migration
+COPY backend ./backend
+COPY scripts ./scripts
+RUN npm run db:generate && cd backend && DATABASE_PROVIDER=postgresql DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build node ../node_modules/prisma/build/index.js migrate diff --from-empty --to-schema prisma/postgresql --script > /dev/null
+ENV JITI_CACHE_DIR=/tmp/jiti XDG_CACHE_HOME=/tmp/.cache
+USER node
+ENTRYPOINT ["node", "scripts/database.mjs", "deploy"]
+
+FROM dependencies AS build
+COPY backend ./backend
+COPY contracts ./contracts
+COPY scripts ./scripts
+RUN npm run db:generate && npm run build --workspace backend
+RUN npm prune --workspace backend --include-workspace-root --omit=dev --ignore-scripts --no-fund --no-audit && mkdir -p backend/node_modules
+
+FROM docker.io/library/node:24.16.0-alpine AS runtime
+ENV NODE_ENV=production PORT=8080 MANAGEMENT_PORT=9090 API_HOST=0.0.0.0 MANAGEMENT_HOST=0.0.0.0
+RUN addgroup -S -g 10001 platform && adduser -S -u 10001 -G platform platform
+WORKDIR /app
+COPY --from=build --chown=10001:10001 /workspace/node_modules ./node_modules
+COPY --from=build --chown=10001:10001 /workspace/backend/package.json ./backend/package.json
+COPY --from=build --chown=10001:10001 /workspace/backend/node_modules ./backend/node_modules
+COPY --from=build --chown=10001:10001 /workspace/backend/dist ./backend/dist
+USER 10001:10001
+EXPOSE 8080 9090
+CMD ["node", "backend/dist/main.js"]
