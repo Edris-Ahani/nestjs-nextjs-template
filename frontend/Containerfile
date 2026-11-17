@@ -1,4 +1,4 @@
-FROM docker.io/library/node:24.16.0-alpine AS dependencies
+FROM docker.io/library/node:26.13.1-alpine AS dependencies
 RUN npm install --global npm@11.21.2 --no-fund --no-audit
 WORKDIR /workspace
 COPY package.json package-lock.json .npmrc ./
@@ -11,7 +11,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY frontend ./frontend
 RUN npm run build --workspace frontend
 
-FROM docker.io/library/node:24.16.0-alpine AS runtime
+FROM docker.io/library/node:26.13.1-alpine AS runtime
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
 RUN addgroup -S -g 10001 platform && adduser -S -u 10001 -G platform platform
 WORKDIR /app
